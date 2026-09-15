@@ -27,6 +27,7 @@ abstract class AgrimexDatabase : RoomDatabase() {
 
                 INSTANCE = instance
                 instance
+
             }
         }
     }
