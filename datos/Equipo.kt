@@ -11,5 +11,7 @@ data class Equipo(
     val marca: String,
     val modelo: String,
     val numero_serie: String,
-    val estado: String
+    val estado: String,
+    val id_departamento: Int
+
 )

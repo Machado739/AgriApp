@@ -20,31 +20,54 @@ class InventarioViewModel(application: Application) : AndroidViewModel(applicati
     fun obtenerEquiposPorDepartamento(idDepto: Int) {
         viewModelScope.launch {
             try {
-                mensajeEstado.value = "Descargando inventario del área..."
+                mensajeEstado.value = "Sincronizando con el servidor..."
 
-                // 1. Descargamos de tu PC filtrando por área
+                // 1. Petición remota al servidor (FastAPI)
                 val respuestaRemota = RetrofitClient.api.obtenerEquiposPorDepto(idDepto)
 
-                // 2. Aquí debes convertir y guardar en Room usando equipoDao.guardarEquipos()
+                // 2. Mapeo e Inserción en Room (Guarda la copia en SQLite)
+                val listaLocales = respuestaRemota.map { equipoRemoto ->
+                    EquipoLocal(
+                        id_equipo = equipoRemoto.id_equipo,
+                        marca = equipoRemoto.marca,
+                        modelo = equipoRemoto.modelo,
+                        numero_serie = equipoRemoto.numero_serie,
+                        estado = equipoRemoto.estado,
+                        id_departamento = equipoRemoto.id_departamento ?: idDepto
+                    )
+                }
 
-                // 3. Mostramos en pantalla
+                // Guardado físico en el almacenamiento interno del teléfono
+                equipoDao.guardarEquipos(listaLocales)
+
+                // 3. Renderizado en la interfaz gráfica
                 listaEquipos.clear()
                 listaEquipos.addAll(respuestaRemota)
                 mensajeEstado.value = ""
 
             } catch (e: Exception) {
-                // Modo Offline: Rescatamos los datos del teléfono para esta área específica
+                // MODO OFFLINE: Si la API no responde, lee directamente desde SQLite
                 try {
                     val datosLocales = equipoDao.obtenerPorDepartamento(idDepto)
                     if (datosLocales.isNotEmpty()) {
                         listaEquipos.clear()
-                        // Convertir EquipoLocal a Equipo y mostrar...
-                        mensajeEstado.value = "Modo Offline activo"
+                        val adaptados = datosLocales.map { local ->
+                            Equipo(
+                                id_equipo = local.id_equipo,
+                                marca = local.marca,
+                                modelo = local.modelo,
+                                numero_serie = local.numero_serie,
+                                estado = local.estado,
+                                id_departamento = local.id_departamento
+                            )
+                        }
+                        listaEquipos.addAll(adaptados)
+                        mensajeEstado.value = "Modo Offline: Mostrando datos guardados"
                     } else {
-                        mensajeEstado.value = "Sin conexión y sin datos para esta área."
+                        mensajeEstado.value = "Sin datos guardados localmente para esta área"
                     }
                 } catch (dbError: Exception) {
-                    mensajeEstado.value = "Error interno: ${dbError.message}"
+                    mensajeEstado.value = "Error al leer almacenamiento local: ${dbError.message}"
                 }
             }
         }
