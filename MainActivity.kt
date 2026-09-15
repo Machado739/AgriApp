@@ -22,6 +22,7 @@ import com.example.agrimexapp.datos.InventarioViewModel
 import com.example.agrimexapp.datos.LoginViewModel
 import com.example.agrimexapp.pantallas.MenuGlobalAdmin
 import com.example.agrimexapp.pantallas.PantallaLogin
+import com.example.agrimexapp.ui.PantallaInicio
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -83,40 +84,55 @@ fun AgrimexAppNavegacion() {
     val navController = rememberNavController()
 
     NavHost(navController = navController, startDestination = "login") {
-        // En tu MainActivity (dentro del NavHost):
-        composable("login") {
-            PantallaLogin(viewModel = viewModel()) { esAdmin, idDepto ->
-                if (esAdmin) {
-                    navController.navigate("menu_global_admin")
-                } else {
-                    navController.navigate("panel_departamento/$idDepto")
-                }
-            }
-        }
 
-        // Aquí irán tus otras pantallas
-        composable("menu_global_admin") {
-            MenuGlobalAdmin(
-                onAreaSeleccionada = { idDepto ->
-                    navController.navigate("panel_departamento/$idDepto")
+        // 1. Pantalla de Acceso (Login)
+        composable("login") {
+            val loginViewModel: LoginViewModel = viewModel()
+            PantallaLogin(
+                viewModel = loginViewModel,
+                onLoginExitoso = { esAdmin, idDepto, nombreUsuario, puestoUsuario ->
+                    // Navegamos a la pantalla de inicio pasando los datos del usuario para el menú lateral
+                    navController.navigate("inicio/$nombreUsuario/$puestoUsuario/$idDepto") {
+                        // Limpiamos el historial para que al dar "Atrás" no regrese al login
+                        popUpTo("login") { inclusive = true }
+                    }
                 }
             )
         }
+
+        // 2. Pantalla de Inicio con Menú Lateral Deslizante
+        composable("inicio/{nombre}/{puesto}/{idDepto}") { backStackEntry ->
+            val nombre = backStackEntry.arguments?.getString("nombre") ?: "Usuario"
+            val puesto = backStackEntry.arguments?.getString("puesto") ?: "Personal"
+            val idDepto = backStackEntry.arguments?.getString("idDepto")?.toInt() ?: 1
+
+            PantallaInicio(
+                nombreUsuario = nombre,
+                puestoUsuario = puesto,
+                onNavegarEquipos = {
+                    // Al hacer clic en "Equipos" en el menú, salta al inventario del área
+                    navController.navigate("panel_departamento/$idDepto")
+                },
+                onCerrarSesion = {
+                    // Al cerrar sesión, regresa al login y limpia todo el flujo previo
+                    navController.navigate("login") {
+                        popUpTo("inicio/{nombre}/{puesto}/{idDepto}") { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        // 3. Pantalla de Inventario Completo del Departamento (Sistemas / Test)
         composable("panel_departamento/{idDepto}") { backStackEntry ->
-            //1. Extraemos el numero de la ruta (1 para Sistemas, 2 para Test, etc.)
             val idDeptoStr = backStackEntry.arguments?.getString("idDepto") ?: "1"
             val idDepto = idDeptoStr.toInt()
 
             val inventarioViewModel: InventarioViewModel = viewModel()
 
-            PantallaInventario(viewModel = inventarioViewModel, idDepartamento = idDepto)
-/*
-            if (it.arguments?.getString("idDepto")?.toIntOrNull() == 1) {
-                PantallaInventario(viewModel = viewModel())
-            } else {
-                // Aquí podrías mostrar otra pantalla para otros departamentos
-                Text(text = "Pantalla para otro departamento")
-            }*/
+            PantallaInventario(
+                viewModel = inventarioViewModel,
+                idDepartamento = idDepto
+            )
         }
     }
 }

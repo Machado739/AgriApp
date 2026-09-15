@@ -12,7 +12,7 @@ import retrofit2.http.Path
 data class LoginRequest(val nombre: String, val credenciales: String)
 
 // Lo que el servidor nos responde
-data class LoginResponse(val id_usuario: Int, val rol_admin: Boolean, val id_departamento: Int?)
+data class LoginResponse(val id_usuario: Int, val rol_admin: Boolean, val id_departamento: Int?, val nombre: String, val puesto: String)
 
 // 1. Mapeamos las rutas de tu API en Python
 interface AgrimexApi {

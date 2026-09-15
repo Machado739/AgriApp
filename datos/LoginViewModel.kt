@@ -12,7 +12,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
     val mensajeEstado = mutableStateOf("")
     private val sessionManager = SessionManager(application)
 
-    fun validarCredenciales(usuario: String, pass: String, onSuccess: (Boolean, Int) -> Unit) {
+    fun validarCredenciales(usuario: String, pass: String, onSuccess: (Boolean, Int, String, String) -> Unit) {
         // 1. Validar que no dejen los campos vacíos
         if (usuario.isBlank() || pass.isBlank()) {
             mensajeEstado.value = "Por favor ingresa usuario y contraseña"
@@ -28,9 +28,9 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                 val idDepto = respuesta.id_departamento ?: 1
 
                 // 3. Si el servidor aprueba las credenciales, guardamos la sesión oficial
-                sessionManager.guardarSesion(idDepto, respuesta.rol_admin)
+                sessionManager.guardarSesion(idDepto, respuesta.rol_admin, respuesta.nombre, respuesta.puesto)
 
-                onSuccess(respuesta.rol_admin, idDepto)
+                onSuccess(respuesta.rol_admin, idDepto, respuesta.nombre, respuesta.puesto)
 
             } catch (e: Exception) {
                 // 4. MODO OFFLINE: Solo si el servidor falla, evaluamos el acceso local
@@ -44,7 +44,7 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
                     val esAdmin = sesionGuardada["esAdmin"] as Boolean
                     val idDepto = sesionGuardada["idDepto"] as Int
 
-                    onSuccess(esAdmin, idDepto)
+                    onSuccess(esAdmin, idDepto, sesionGuardada["nombre"] as String, sesionGuardada["puesto"] as String)
                 } else {
                     // Si intentan entrar por primera vez sin internet o con datos inventados
                     mensajeEstado.value = "Acceso denegado: Credenciales incorrectas o sin internet."
@@ -52,4 +52,6 @@ class LoginViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    private fun onSuccess(p1: Boolean, p2: Int, nombre: String, puesto: String) {}
 }
