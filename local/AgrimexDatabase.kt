@@ -5,7 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [EquipoLocal::class], version = 1, exportSchema = false)
+// 1. Aumentamos la versión a 2
+@Database(entities = [EquipoLocal::class], version = 2, exportSchema = false)
 abstract class AgrimexDatabase : RoomDatabase() {
     abstract fun equipoDao(): EquipoDao
 
@@ -19,7 +20,11 @@ abstract class AgrimexDatabase : RoomDatabase() {
                     context.applicationContext,
                     AgrimexDatabase::class.java,
                     "agrimex_database"
-                ).build()
+                )
+                    // 2. Instrucción para recrear las tablas automáticamente al detectar cambios
+                    .fallbackToDestructiveMigration()
+                    .build()
+
                 INSTANCE = instance
                 instance
             }
