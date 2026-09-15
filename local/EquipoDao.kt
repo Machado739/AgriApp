@@ -13,4 +13,7 @@ interface EquipoDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun guardarEquipos(equipos: List<EquipoLocal>): @JvmSuppressWildcards List<Long>
+
+    @Query("SELECT * FROM equipos_locales WHERE id_departamento = :idDepto")
+    suspend fun obtenerPorDepartamento(idDepto: Int): @JvmSuppressWildcards List<EquipoLocal>
 }

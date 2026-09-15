@@ -5,6 +5,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 
 // Lo que enviamos al servidor
@@ -18,6 +19,10 @@ interface AgrimexApi {
     @GET("/api/equipos")
     suspend fun obtenerEquipos(): List<Equipo>
     // Nota: 'Equipo' es la tabla que creamos anteriormente
+
+    // La etiqueta @Path inyecta el número del departamento en la URL
+    @GET("/api/equipos/{idDepto}")
+    suspend fun obtenerEquiposPorDepto(@Path("idDepto") idDepto: Int): List<Equipo>
 
     @POST("/api/login")
     suspend fun iniciarSesion(@Body request: LoginRequest): LoginResponse

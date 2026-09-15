@@ -16,7 +16,7 @@ import com.example.agrimexapp.datos.LoginViewModel
 fun PantallaLogin(
     viewModel: LoginViewModel,
     // Esta función inyectada redirigirá la navegación al tener éxito
-    onLoginExitoso: (Boolean, Int) -> Unit
+    onLoginExitoso: (Boolean, Int?) -> Unit
 ) {
     var nombreUsuario by remember { mutableStateOf("") }
     var credenciales by remember { mutableStateOf("") }
@@ -50,15 +50,7 @@ fun PantallaLogin(
         )
 
         Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                viewModel.validarCredenciales(nombreUsuario, credenciales) { esAdmin, idDepto ->
-                    onLoginExitoso(esAdmin, idDepto ?: 0)
-                }
-            },
-            modifier = Modifier.fillMaxWidth().height(50.dp)
-        ) {
+        Button(onClick = { viewModel.validarCredenciales(nombreUsuario, credenciales, onLoginExitoso) }) {
             Text("Ingresar")
         }
 
