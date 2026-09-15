@@ -19,6 +19,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.agrimexapp.datos.InventarioViewModel
 import com.example.agrimexapp.datos.LoginViewModel
+import com.example.agrimexapp.pantallas.PantallaLogin
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

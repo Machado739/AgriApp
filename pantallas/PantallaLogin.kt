@@ -10,14 +10,17 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.agrimexapp.datos.LoginViewModel
+
 @Composable
 fun PantallaLogin(
+    viewModel: LoginViewModel,
     // Esta función inyectada redirigirá la navegación al tener éxito
     onLoginExitoso: (Boolean, Int) -> Unit
 ) {
     var nombreUsuario by remember { mutableStateOf("") }
     var credenciales by remember { mutableStateOf("") }
-    var mensajeEstado by remember { mutableStateOf("") }
+    val mensajeEstado by viewModel.mensajeEstado
 
     Column(
         modifier = Modifier.fillMaxSize().padding(24.dp),
@@ -50,8 +53,9 @@ fun PantallaLogin(
 
         Button(
             onClick = {
-                // Aquí conectaremos con tu ViewModel para consultar a FastAPI
-                mensajeEstado = "Validando credenciales..."
+                viewModel.validarCredenciales(nombreUsuario, credenciales) { esAdmin, idDepto ->
+                    onLoginExitoso(esAdmin, idDepto ?: 0)
+                }
             },
             modifier = Modifier.fillMaxWidth().height(50.dp)
         ) {
