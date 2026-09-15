@@ -88,11 +88,16 @@ def verificar_acceso(datos: LoginRequest):
     cursor = conn.cursor()
     # Consulta a tu base de datos SQL Server local
     cursor.execute(
-        "SELECT id_usuario, rol_admin, id_departamento FROM Usuarios WHERE nombre = ? AND credenciales = ?", 
+        "SELECT id_usuario, rol_admin, id_departamento, nombre, puesto FROM Usuarios WHERE nombre = ? AND credenciales = ?", 
         (datos.nombre, datos.credenciales)
     )
     usuario = cursor.fetchone()
+    conn.close()   
     
     if usuario:
-        return {"id_usuario": usuario[0], "rol_admin": usuario[1], "id_departamento": usuario[2]}
+        return {"id_usuario": usuario[0],
+                "rol_admin": bool(usuario[1]),
+                "id_departamento": usuario[2],
+                "nombre": usuario[3],
+                "puesto": usuario[4]}
     raise HTTPException(status_code=401, detail="Credenciales incorrectas")
